@@ -14,7 +14,8 @@ eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 cap = cv2.VideoCapture(0)
 count=0
 uname=''
-
+img_name=''
+net=''
 class UpdateChecker(PatternMatchingEventHandler):	#containing functions to check for newly
 	def process(self, event):			#created or modified files within a directory
 		"""
@@ -103,12 +104,12 @@ def load_models():				#loading saved models from the database
 		graph_def.ParseFromString(f.read())
 		_ = tf.import_graph_def(graph_def, name='')
 
-def tf_face_recog():
 
-	with tf.Session() as sess:    
-		while True:
+with tf.Session() as sess:    
+def tf_face_recog():
 			
-			image_path = "pics.jpeg"
+			global img_name,net
+			image_path = "/root/zoya/" + str(img_name) + '.jpg'
 			start=time.time()
 			# Read in the image_data
 			image_data = tf.gfile.FastGFile(image_path, 'rb').read()
@@ -121,17 +122,19 @@ def tf_face_recog():
 				human_string = label_lines[node_id]
 				score = predictions[0][node_id]
 				net=(('%s (score = %.5f)' % (human_string, score)))
-				#if score>0.7:
-				print net
+				if score>0.7:
+					print net
 				print (time.time()-start)
 				print "....................................................."
 
 
 
+
 def face_detect():
 
+	global uname,count,cap,img_name
 	while True:
-		global uname,count,cap
+
 		ret, img = cap.read()
 		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 		faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -139,7 +142,7 @@ def face_detect():
 		for (x,y,w,h) in faces:
 			count=count+1
 			cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
-			cv2.putText(img, "face no. "+str(count), (x,y), font, 0.8, (0, 255, 0), 1, cv2.LINE_AA)
+
 
 			roi_gray = gray[y:y+h, x:x+w]
 			roi_color = img[y:y+h, x:x+w]
@@ -148,8 +151,10 @@ def face_detect():
 			eyes = eye_cascade.detectMultiScale(roi_gray)
 			for (ex,ey,ew,eh) in eyes:
 				cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-		    		roi_pic = cv2.resize(roi_pic, (128,128)) #resizing images
-		    	cv2.imwrite("/root/zoya/" + str(unique_name()) + '.jpg', roi_pic)
+		    		roi_pic = cv2.resize(roi_pic, (128,128)) #resizing images to 128x128 pixels
+			img_name=unique_name()
+		    	cv2.imwrite("/root/zoya/" + str(img_name) + '.jpg', roi_pic)
+			cv2.putText(img, "ID: "+str(net), (x,y), font, 0.8, (0, 255, 0), 1, cv2.LINE_AA)
 		uname=""
 		count=0
 		cv2.imshow('img',img)
