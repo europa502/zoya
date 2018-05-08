@@ -61,8 +61,39 @@ def unique_name():				#provides a unique name by randomly picking 15 alphanumeri
      		uname=uname+random.choice(string.ascii_letters + string.digits)
 	return uname
 
+def ModelNameArray():
+	model_name_array=[]
+	line_count=0
+	#check the model_index.txt
+	model_index=open("/root/zoya/model_index.txt")
+	line= model_index.readlines()
+	for model_name in line:
+		line_count=line_count+1
+	for model_name in line:
+		model_name_array.append(model_name.replace("\n",""))
+
 def load_models():				#loading saved models from the database
 
+	new_model_name_array=[]
+	line_count=0
+
+	#check the model_index.txt
+	model_index=open("/root/zoya/model_index.txt")
+	line= model_index.readlines()
+	for model_name in line:
+		line_count=line_count+1
+	for model_name in line:
+		new_model_name_array.append(model_name.replace("\n",""))
+	new_model_name_array=list(set(new_model_name_array)-set(ModelNameArray.model_name_array))
+	for model in new_model_name_array:
+		label_lines = [line.rstrip() for line in tf.gfile.GFile("/root/zoya/models/"+model+".txt")]
+
+		# Unpersists graph from file
+	     #with tf.gfile.FastGFile("/root/zoya/models/"+model+".pb", 'rb') as f:
+		graph_def = tf.GraphDef()
+		graph_def.ParseFromString(tf.gfile.FastGFile("/root/zoya/models/"+model+".pb", 'rb').read())
+		_ = tf.import_graph_def(graph_def, name='')
+		
 	# Loads label file, strips off carriage return
 	label_lines = [line.rstrip() for line in tf.gfile.GFile("/tf/output_labels.txt")]
 
