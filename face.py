@@ -16,6 +16,7 @@ count=0
 uname=''
 img_name=''
 net=''
+
 class UpdateChecker(PatternMatchingEventHandler):	#containing functions to check for newly
 	def process(self, event):			#created or modified files within a directory
 		"""
@@ -106,10 +107,9 @@ def load_models():				#loading saved models from the database
 
 
 with tf.Session() as sess:    
-def tf_face_recog():
-			
+	def tf_face_recog(image_path):		#reveals the image belonging to the class and its score
+						#returns the class and if score > 0.7
 			global img_name,net
-			image_path = "/root/zoya/" + str(img_name) + '.jpg'
 			start=time.time()
 			# Read in the image_data
 			image_data = tf.gfile.FastGFile(image_path, 'rb').read()
@@ -124,9 +124,10 @@ def tf_face_recog():
 				net=(('%s (score = %.5f)' % (human_string, score)))
 				if score>0.7:
 					print net
+
 				print (time.time()-start)
 				print "....................................................."
-
+				return net
 
 
 
@@ -151,10 +152,12 @@ def face_detect():
 			eyes = eye_cascade.detectMultiScale(roi_gray)
 			for (ex,ey,ew,eh) in eyes:
 				cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-		    		roi_pic = cv2.resize(roi_pic, (128,128)) #resizing images to 128x128 pixels
+		    	roi_pic = cv2.resize(roi_pic, (128,128)) #resizing images to 128x128 pixels
 			img_name=unique_name()
-		    	cv2.imwrite("/root/zoya/" + str(img_name) + '.jpg', roi_pic)
-			cv2.putText(img, "ID: "+str(net), (x,y), font, 0.8, (0, 255, 0), 1, cv2.LINE_AA)
+			path("/root/zoya/images/")
+			path_name="/root/zoya/images/" + str(img_name) + '.jpg'
+		    	cv2.imwrite(path_name, roi_pic)
+			cv2.putText(img, "ID: "+str(tf_face_recog(path_name)), (x,y), font, 0.8, (0, 255, 0), 1, cv2.LINE_AA)
 		uname=""
 		count=0
 		cv2.imshow('img',img)
